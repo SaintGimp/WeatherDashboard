@@ -1,6 +1,6 @@
 var spark =require('spark');
 var request = require('request');
-var config = require('./config');
+
 
 function parseForecast(body) {
 var forecast = body.forecast.simpleforecast.forecastday[0].icon;
@@ -42,7 +42,7 @@ spark.on('login', function() {
   console.log('Getting current weather...');
   
   var options = {
-    url: 'http://api.wunderground.com/api/'+ config.weatherunderground_api_key +'/forecast/q/'+ config.weather_location +'.json',
+    url: 'http://api.wunderground.com/api/'+ process.env.WEATHERUNDERGROUND_API_KEY +'/forecast/q/'+ process.env.WEATHER_LOCATION +'.json',
     json: true
   };
   console.log(options.url);
@@ -53,11 +53,11 @@ spark.on('login', function() {
       console.log('The forecast is ' + forecast);
 
       console.log('Sending to Spark...');
-      spark.callFunction(config.spark_device_id, 'display', forecast);
+      spark.callFunction(process.env.SPARK_DEVICE_ID, 'display', forecast);
 
       console.log('Done.');
     }
   });
 });
 
-spark.login({accessToken: config.spark_access_key});
+spark.login({accessToken: process.env.SPARK_ACCESS_KEY});

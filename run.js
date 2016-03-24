@@ -1,6 +1,6 @@
-var spark =require('spark');
+var Particle = require('particle-api-js');
+var particle = new Particle();
 var request = require('request');
-
 
 function parseForecast(body) {
 var forecast = body.forecast.simpleforecast.forecastday[0].icon;
@@ -38,26 +38,34 @@ var forecast = body.forecast.simpleforecast.forecastday[0].icon;
   }
 }
 
-spark.on('login', function() {
-  console.log('Getting current weather...');
-  
-  var options = {
-    url: 'http://api.wunderground.com/api/'+ process.env.WEATHERUNDERGROUND_API_KEY +'/forecast/q/'+ process.env.WEATHER_LOCATION +'.json',
-    json: true
-  };
-  console.log(options.url);
-  
-  request(options, function (error, response, body) {
-    if (!error && response.statusCode == 200) {
-      var forecast = parseForecast(body);
-      console.log('The forecast is ' + forecast);
+console.log('Getting current weather...');
 
-      console.log('Sending to Spark...');
-      spark.callFunction(process.env.SPARK_DEVICE_ID, 'display', forecast);
+var options = {
+  url: 'http://api.wunderground.com/api/'+ process.env.WEATHERUNDERGROUND_API_KEY +'/forecast/q/'+ process.env.WEATHER_LOCATION +'.json',
+  json: true
+};
+console.log(options.url);
 
-      console.log('Done.');
-    }
-  });
+request(options, function (error, response, body) {
+  if (!error && response.statusCode == 200) {
+    var forecast = parseForecast(body);
+    console.log('The forecast is ' + forecast);
+
+    console.log('Sending to device...');
+
+    particle.callFunction({
+      deviceId: process.env.TEMPERATURE_PARTICLE_DEVICE_ID,
+      name: 'display', argument: forecast,
+      auth: process.env.TEMPERATURE_PARTICLE_ACCESS_KEY
+    })
+    .then(
+      function(data) {
+        console.log('Done.');
+      }, function(err) {
+        console.log('An error occurred:', err);
+      });
+  }
+  else {
+    console.log('An error occurred:', error);
+  }
 });
-
-spark.login({accessToken: process.env.SPARK_ACCESS_KEY});

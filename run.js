@@ -44,19 +44,21 @@ var options = {
   url: 'http://api.wunderground.com/api/'+ process.env.WEATHERUNDERGROUND_API_KEY +'/forecast/q/'+ process.env.WEATHER_LOCATION +'.json',
   json: true
 };
-console.log(options.url);
 
 request(options, function (error, response, body) {
   if (!error && response.statusCode == 200) {
+    console.log('The raw forecast is:');
+    console.log(body.forecast.simpleforecast.forecastday[0]);
+
     var forecast = parseForecast(body);
-    console.log('The forecast is ' + forecast);
+    console.log('The forecast to display is ' + forecast);
 
     console.log('Sending to device...');
 
     particle.callFunction({
-      deviceId: process.env.TEMPERATURE_PARTICLE_DEVICE_ID,
+      deviceId: process.env.WEATHER_PARTICLE_DEVICE_ID,
       name: 'display', argument: forecast,
-      auth: process.env.TEMPERATURE_PARTICLE_ACCESS_KEY
+      auth: process.env.WEATHER_PARTICLE_ACCESS_KEY
     })
     .then(
       function(data) {
